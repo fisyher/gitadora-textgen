@@ -27,22 +27,43 @@ namespace gitadora_textgen
             Artist
         };
 
+        enum TextAlignment
+        {
+            Left,
+            Center,
+            Right
+        }
+
         static private ImageType _imageType;
+        static private string _fontType;
+        static private string _fontType2;
 
         static void Main(string[] args)
         {
             var gradationTopColor = Color.FromArgb(0x13, 0xD5, 0xBB);
             var gradationBottomColor = Color.FromArgb(0xe0, 0xe8, 0x2f);
-            var fontColor = Color.Black;
+            var fontColor = Color.White;
             var edgeColor = Color.White;
 
-            if (args.Length < 3 || args[0].ToLower() != "solid" && args[0].ToLower() != "gradient")
+            if (args.Length < 3)
             {
-                Console.WriteLine("usage: {0} [solid/gradient] [song title] [artist name] [optional: output folder]", AppDomain.CurrentDomain.FriendlyName);
+                Console.WriteLine("usage: {0} [font] [song title] [artist name] [optional: output folder]", AppDomain.CurrentDomain.FriendlyName);
+                Console.WriteLine("For [font], type \"!\" for default font: Helvetica Extra Compressed");
+                Console.WriteLine("Please make sure the font is installed before running this program.");
                 Environment.Exit(1);
             }
 
-            var style = args[0].ToLower();
+            _fontType = args[0];
+            if (args[0] == "-")
+            {
+                _fontType = "Meiryo";
+                _fontType2 = "Meiryo";
+            }
+            else if(args[0] == "!")
+            {
+                _fontType = "Helvetica Extra Compressed";//This font is most closely resemble Martines N10, which i cannot find online for free
+                //_fontType2 = "Helvetica Ultra Compressed";
+            }
             var songTitle = args[1];
             var artistName = args[2];
             var outputFoldername = args.Length == 4 ? args[3] : "";
@@ -52,57 +73,50 @@ namespace gitadora_textgen
                 Directory.CreateDirectory(outputFoldername);
             }
 
-            if (style == "solid")
             {
-                // Song title = 40px
+                // Song title = 20px
                 _imageType = ImageType.Title;
-                DrawImage(Path.Combine(outputFoldername, "title.png"), songTitle, 628, 64, 40, false, fontColor, edgeColor);
+                DrawImage(Path.Combine(outputFoldername, "title.png"), songTitle, 240, 30, 19, 
+                    false, false, TextAlignment.Left, Color.White, Color.Transparent, Color.Transparent, Color.Transparent, FontStyle.Regular, 1);
+                //DrawImage(Path.Combine(outputFoldername, "title.png"), songTitle, 240, 30, 22, false, Color.White);
 
-                // Artist name = 28px
+                // Artist name = 24px
                 _imageType = ImageType.Artist;
-                DrawImage(Path.Combine(outputFoldername, "artist.png"), artistName, 628, 48, 28, false, fontColor, edgeColor);
-            }
-            else if (style == "gradient")
-            {
-                // Song title = 40px
-                _imageType = ImageType.Title;
-                DrawImage(Path.Combine(outputFoldername, "title.png"), songTitle, 628, 64, 40, false, fontColor, gradationTopColor, gradationBottomColor);
-
-                // Artist name = 28px
-                _imageType = ImageType.Artist;
-                DrawImage(Path.Combine(outputFoldername, "artist.png"), artistName, 628, 48, 28, false, fontColor, gradationTopColor, gradationBottomColor);
-            }
+                DrawImage(Path.Combine(outputFoldername, "artist.png"), artistName, 240, 24, 17,
+                    false, false, TextAlignment.Right, Color.White, Color.Transparent, Color.Transparent, Color.Transparent, FontStyle.Regular, 1);
+                //DrawImage(Path.Combine(outputFoldername, "artist.png"), artistName, 240, 24, 16, false, Color.White);
+            }            
 
             // Small song title = 13px-ish, bold
-            _imageType = ImageType.TitleSmall;
-            DrawImage(Path.Combine(outputFoldername, "title_small.png"), songTitle, 152, 20, 13, true, Color.White);
+            //_imageType = ImageType.TitleSmall;
+            //DrawImage(Path.Combine(outputFoldername, "title_small.png"), songTitle, 240, 30, 22, true, Color.White, FontStyle.Regular);
         }
 
-        static void DrawImage(string output_filename, string text, int imageWidth, int imageHeight, float fontSize, bool centerText, Color fontColor)
+        static void DrawImage(string output_filename, string text, int imageWidth, int imageHeight, float fontSize, TextAlignment textAlignment, Color fontColor, FontStyle fontStyle)
         {
             var edgeColor = Color.Transparent;
             var gradationTopColor = Color.Transparent;
             var gradationBottomColor = Color.Transparent;
-            DrawImage(output_filename, text, imageWidth, imageHeight, fontSize, false, false, centerText, fontColor, edgeColor, gradationTopColor, gradationBottomColor);
+            DrawImage(output_filename, text, imageWidth, imageHeight, fontSize, false, false, textAlignment, fontColor, edgeColor, gradationTopColor, gradationBottomColor, fontStyle);
         }
 
 
-        static void DrawImage(string output_filename, string text, int imageWidth, int imageHeight, float fontSize, bool centerText, Color fontColor, Color edgeColor)
+        static void DrawImage(string output_filename, string text, int imageWidth, int imageHeight, float fontSize, TextAlignment textAlignment, Color fontColor, Color edgeColor, FontStyle fontStyle)
         {
             var outlineSize = fontSize < 32 ? 4 : 5;
 
             var gradationTopColor = Color.Black;
             var gradationBottomColor = Color.Black;
-            DrawImage(output_filename, text, imageWidth, imageHeight, fontSize, true, false, centerText, fontColor, edgeColor, gradationTopColor, gradationBottomColor, outlineSize);
+            DrawImage(output_filename, text, imageWidth, imageHeight, fontSize, true, false, textAlignment, fontColor, edgeColor, gradationTopColor, gradationBottomColor, fontStyle, outlineSize);
         }
 
-        static void DrawImage(string output_filename, string text, int imageWidth, int imageHeight, float fontSize, bool centerText, Color fontColor, Color gradationTopColor, Color gradationBottomColor)
+        static void DrawImage(string output_filename, string text, int imageWidth, int imageHeight, float fontSize, TextAlignment textAlignment, Color fontColor, Color gradationTopColor, Color gradationBottomColor)
         {
             var edgeColor = Color.Black;
-            DrawImage(output_filename, text, imageWidth, imageHeight, fontSize, true, true, centerText, fontColor, edgeColor, gradationTopColor, gradationBottomColor, 6);
+            DrawImage(output_filename, text, imageWidth, imageHeight, fontSize, true, true, textAlignment, fontColor, edgeColor, gradationTopColor, gradationBottomColor, FontStyle.Regular, 6);
         }
 
-        static void DrawImage(string output_filename, string text, int imageWidth, int imageHeight, float fontSize, bool drawOutline, bool drawOutlineGradient, bool centerText, Color fontColor, Color edgeColor, Color gradationTopColor, Color gradationBottomColor, int outlineSize=1)
+        static void DrawImage(string output_filename, string text, int imageWidth, int imageHeight, float fontSize, bool drawOutline, bool drawOutlineGradient, TextAlignment textAlignment, Color fontColor, Color edgeColor, Color gradationTopColor, Color gradationBottomColor, FontStyle fontStyle, int outlineSize=1)
         {
             if (String.IsNullOrEmpty(text))
             {
@@ -112,7 +126,7 @@ namespace gitadora_textgen
                 return;
             }
 
-            var fontName = "Meiryo";
+            var fontName = _fontType;
             var lcid = System.Globalization.CultureInfo.GetCultureInfo("en-us").LCID;
             FontFamily fontFamily = new InstalledFontCollection().Families.FirstOrDefault(ff => ff.GetName(lcid) == fontName);
 
@@ -123,11 +137,11 @@ namespace gitadora_textgen
             */
 
             var stringFormat = StringFormat.GenericTypographic;
-            stringFormat.LineAlignment = StringAlignment.Center;
+            stringFormat.LineAlignment = StringAlignment.Near;
             stringFormat.FormatFlags |= StringFormatFlags.NoWrap | StringFormatFlags.MeasureTrailingSpaces;
 
             int edgePt = (int)(fontSize / outlineSize);
-            var font = new Font(new FontFamily(fontName), fontSize, _imageType == ImageType.TitleSmall ? FontStyle.Bold : FontStyle.Regular);
+            var font = new Font(new FontFamily(_fontType), fontSize, fontStyle);
             var stringSize = System.Windows.Forms.TextRenderer.MeasureText(text, font, new Size(int.MaxValue, int.MaxValue),
                 System.Windows.Forms.TextFormatFlags.NoPrefix |
                 System.Windows.Forms.TextFormatFlags.NoClipping |
@@ -137,6 +151,9 @@ namespace gitadora_textgen
             int newImageWidth = stringSize.Width + edgePt * 2;
             int newImageHeight = stringSize.Height + edgePt * 2;
 
+            System.Console.WriteLine("String Image Width: " + stringSize.Width);
+            System.Console.WriteLine("String Image Height: " + stringSize.Height);
+
             newImageWidth = imageWidth > newImageWidth ? imageWidth : newImageWidth;
             newImageHeight = imageHeight > newImageHeight ? imageHeight : newImageHeight;
 
@@ -145,16 +162,16 @@ namespace gitadora_textgen
             Image image3 = new Bitmap(newImageWidth, newImageHeight);
 
             Graphics g = Graphics.FromImage(image);
-            g.SmoothingMode = SmoothingMode.HighQuality;
-            g.TextRenderingHint = TextRenderingHint.AntiAlias;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
 
             Graphics g2 = Graphics.FromImage(image2);
-            g2.SmoothingMode = SmoothingMode.HighQuality;
-            g2.TextRenderingHint = TextRenderingHint.AntiAlias;
+            g2.SmoothingMode = SmoothingMode.AntiAlias;
+            g2.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
 
             Graphics g3 = Graphics.FromImage(image3);
-            g3.SmoothingMode = SmoothingMode.HighQuality;
-            g3.TextRenderingHint = TextRenderingHint.AntiAlias;
+            g3.SmoothingMode = SmoothingMode.AntiAlias;
+            g3.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
 
             float emSize = g.DpiY * font.SizeInPoints / 72;
                 
@@ -251,24 +268,39 @@ namespace gitadora_textgen
 
                 yoff += (int)((result.Height - box4.Height) / 4) - 2;
                 
-                if (_imageType == ImageType.TitleSmall)
+                if (_imageType == ImageType.Artist)
                 {
                     yoff /= 2;
-                    yoff -= 1;
+                    yoff -= 2;
+                }
+                else if(_imageType == ImageType.Title)
+                {
+                    yoff /= 2;
                 }
 
-                if (centerText && box4.Width < imageWidth)
+                float xoff = -8.0f;
+
+                if(textAlignment == TextAlignment.Center)
                 {
-                    g4.DrawImage(image,
-                        new RectangleF((result.Width - box4.Width) / 2 + 3, yoff, newImageWidth, newImageHeight - Math.Abs(box4.Y - box.Y) / 2), box4,
-                        GraphicsUnit.Pixel);
+                    xoff = (result.Width - box4.Width) / 2 + 3;
                 }
-                else
+                else if(textAlignment == TextAlignment.Right)
                 {
-                    g4.DrawImage(image,
-                        new RectangleF(2, yoff, newImageWidth, newImageHeight - Math.Abs(box4.Y - box.Y) / 2), box4,
-                        GraphicsUnit.Pixel);
+                    xoff = (result.Width - box4.Width) + 10;
                 }
+
+                g4.DrawImage(image,
+                        new RectangleF(xoff, yoff, newImageWidth, newImageHeight - Math.Abs(box4.Y - box.Y) / 2), box4,
+                        GraphicsUnit.Pixel);
+
+                //if (centerText && box4.Width < imageWidth)
+                //{
+                //    g4.DrawImage(image,
+                //        new RectangleF((result.Width - box4.Width) / 2 + 3, yoff, newImageWidth, newImageHeight - Math.Abs(box4.Y - box.Y) / 2), box4,
+                //        GraphicsUnit.Pixel);
+                //}
+                //else
+                
             }
 
             result.Save(output_filename);
